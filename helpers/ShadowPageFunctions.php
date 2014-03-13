@@ -1,27 +1,64 @@
 <?php
 
-function shadowpage_public_items_shadowpage_gallery()
+function shadowpage_public_items_shadowpage_gallery($attrs = array(), $imageType = 'square_thumbnail', $filesShow = false, $item = null)
   {
     
-    $url = $_SERVER['HTTP_HOST'];
-    $basePath = 'http://' . $url . PUBLIC_BASE_URL;
-    $item = get_current_record('item');
-    $item = get_record_by_id('item', $item->id);
-    set_current_record('item', $item);
-    $files = $item->Files;
-    echo '<div id="itemfiles" class="element">';
-    $fr_link_string = array();
-    foreach($files as $file):
-      if (metadata($item, 'has thumbnail') && ($file['mime_type'] != 'text/plain' && $file['mime_type'] !='application/epub+zip' && $file['mime_type'] !='application/zip')){
-        echo '<div class="shadowpage-thumb">'.file_markup($file, array('linkAttributes'=>array('rel'=>'shadowbox[gal1]'))).'</div>';
-        $fr_link_string[] = '<div class="download-full-res"><a href="'. $basePath . '/files/original/'.$file['filename'].'" title="Download ' . $file['original_filename'] . '">' . $file['original_filename'] . '</a></div>';
-      }
-    endforeach;
- 
-    echo '</div>';
-  }
+    if (!$item) {
+        $item = get_current_record('item');
+    }
 
-/**
+    $files = $item->Files;
+    if (!$files) {
+        return '';
+    }
+
+    $defaultAttrs = array(
+        'wrapper' => array('id' => 'item-images'),
+        'linkWrapper' => array('shadowpage-thumb'),
+        'link' => array('rel'=>'shadowbox[gal1]'),
+        'image' => array()
+    );
+    $attrs = array_merge($defaultAttrs, $attrs);
+
+    $html = '';
+    if ($attrs['wrapper'] !== null) {
+        $html .= '<div ' . tag_attributes($attrs['wrapper']) . '>';
+    }
+    foreach ($files as $file) {
+        if (metadata($item, 'has thumbnail') && 
+            ($file['mime_type'] != 'text/plain' && 
+            $file['mime_type'] !='application/epub+zip' && 
+            $file['mime_type'] !='application/zip')){
+            if ($attrs['linkWrapper'] !== null) {
+                $html .= '<div ' . tag_attributes($attrs['linkWrapper']) . '>';
+            }
+
+            $image = file_image($imageType, $attrs['image'], $file);
+            if ($filesShow) {
+                $html .= link_to($file, 'show', $image, $attrs['link']);
+            } else {
+                if ($file['mime_type'] !='application/pdf') {
+                    $linkAttrs = $attrs['link'] + array('href' => $file->getWebPath('original'));
+                    } else {
+                        $linkAttrs = array('href' => $file->getWebPath('original'));
+                    }
+                }
+
+                $html .= '<a ' . tag_attributes($linkAttrs) . '>' . $image . '</a>';
+            
+
+            if ($attrs['linkWrapper'] !== null) {
+                $html .= '</div>';
+            }
+        }
+    }
+    if ($attrs['wrapper'] !== null) {
+        $html .= '</div>';
+    }
+    return $html;
+}
+
+/**p
  * Return HTML for all files assigned to an item.
  * 
  * @package Omeka\Function\View\Item
