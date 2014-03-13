@@ -1,66 +1,68 @@
 <?php
- 
-// add plugin hooks
-add_plugin_hook('public_head', 'shadowpage_public_head');
+// Theming helper functions
+if (!defined('SHADOWPAGE_PLUGIN_DIR')) {
+    define('SHADOWPAGE_PLUGIN_DIR', dirname(__FILE__));
+}
 
-$url = $_SERVER['HTTP_HOST'];
-$fullPath = 'http://' . $url . PUBLIC_BASE_URL;
-define('FULL_OMEKA_PATH', $fullPath);
-function shadowpage_public_head($request)
-{
-  // goes to "javascripts" folder in your public theme directory.  Make sure to download the latest version of Shadowbox, then
-  // extract the files and place "shadowbox.js" here, and "shadowbox.css" in the "css" directory of your theme
+require_once SHADOWPAGE_PLUGIN_DIR . '/helpers/ShadowPageFunctions.php';
+
+
+class ShadowPagePlugin extends Omeka_Plugin_AbstractPlugin
+{ 
+  
+
+  protected $_hooks = array(
+        'public_head',
+        'initialize',
+        'public_items_show'
+    );
+    
+  public function hookPublicHead($args)
+  {
+    
     queue_js_file('shadowbox');
     $script = "Shadowbox.init();";
     queue_js_string($script);
     queue_css_file('shadowbox');
+    queue_css_file('shadowpage');
     $css=".download-full-res{
     float: left;
     clear:left;
-  }";
+    }";
   
-queue_css_string($css);
-}
+    queue_css_string($css);
+  }
 
-function shadowpage_public_items_shadowpage_gallery()
-{
-  $basePath = FULL_OMEKA_PATH;
-  $item = get_current_record('item');
-  $item = get_record_by_id('item', $item->id);
-  set_current_record('item', $item);
-  $files = $item->Files;
-  echo '<div id="itemfiles" class="element">';
-  $fr_link_string = array();
-  foreach($files as $file):
-    if (metadata($item, 'has thumbnail')){
-    echo '<div class="shadowpage-thumb">'.file_markup($file, array('linkAttributes'=>array('rel'=>'shadowbox[gal1]'))).'</div>';
-    $fr_link_string[] = '<div class="download-full-res"><a href="'. $basePath . '/files/original/'.$file['filename'].'" title="Download ' . $file['original_filename'] . '">' . $file['original_filename'] . '</a></div>';
+  /**
+  * Add the translations.
+  */
+  public function hookInitialize()
+  {
+        add_translation_source(dirname(__FILE__) . '/languages');
+  }
+
+public function hookPublicItemsShow($args)
+    {
+        $item = $args['item'];
+        $uri = absolute_url(array('controller'=>'items', 'action'=>'embed', 'id'=>$item->id), 'id');
+        $files = $item->Files;
+        $fr_link_string = array();
+        foreach($files as $file):
+          if ($file['mime_type'] == 'text/plain' || $file['mime_type'] =='application/epub+zip' || $file['mime_type'] =='application/zip'){
+           $fr_link_string[] = '<p><a href="'. $basePath . '/files/original/'.$file['filename'].'" title="Lataa ' . $file['original_filename'] . '">' . $file['original_filename'] . '</a></p>';
+        }
+        endforeach;
+        echo '<div id="download-files">';
+        echo '<h3>'.__('Lataa').'</h3>';
+        foreach($fr_link_string as $links):
+          echo $links;
+        endforeach;
+        echo '</div>';
+  
+ 
+      
     }
-  endforeach;
- 
-  echo '</div>';
-  echo '<h3>&darr; File Download Links &darr;</h3>';
- foreach($fr_link_string as $links):
-    echo $links;
-  endforeach;
-  
-  
-  
-}
-
-// save plugin configuration page
-function shadowpage_config()
-{
-    // save the message as a plugin option
-    set_option('hello_world_message', trim($_POST['hello_world_message']));
-}
-
- 
-// show plugin configuration page
-function shadowpage_config_form()
-{
-
+    
 
 }
- 
 ?>
