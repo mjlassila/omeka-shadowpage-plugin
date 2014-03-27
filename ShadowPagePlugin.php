@@ -52,12 +52,14 @@ public function hookPublicItemsShow($args)
            $fr_link_string[] = '<p><a href="'. $basePath . '/files/original/'.$file['filename'].'" title="Lataa ' . $file['original_filename'] . '">' . $file['original_filename'] . '</a></p>';
         }
         endforeach;
-        echo '<div id="download-files">';
-        echo '<h3>'.__('Lataa').'</h3>';
-        foreach($fr_link_string as $links):
-          echo $links;
-        endforeach;
-        echo '</div>';
+        if ($fr_link_string){
+          echo '<div id="download-files">';
+          echo '<h3>'.__('Lataa teos').'</h3>';
+          foreach($fr_link_string as $links):
+            echo $links;
+          endforeach;
+          echo '</div>';
+        }
   
  
       
