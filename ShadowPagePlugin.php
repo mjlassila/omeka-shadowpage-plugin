@@ -54,7 +54,7 @@ public function hookPublicItemsShow($args)
         endforeach;
         if ($fr_link_string){
           echo '<div id="download-files">';
-          echo '<h3>'.__('Lataa teos').'</h3>';
+          echo '<h3>'.__('Lue teos').'</h3>';
           foreach($fr_link_string as $links):
             echo $links;
           endforeach;
