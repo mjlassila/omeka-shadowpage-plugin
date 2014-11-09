@@ -1,6 +1,6 @@
 <?php
 
-function shadowpage_public_items_shadowpage_gallery($attrs = array(), $imageType = 'square_thumbnail', $filesShow = false, $item = null)
+function shadowpage_public_items_shadowpage_gallery($imageType = 'square_thumbnail', $filesShow = false, $item = null)
   {
     
     if (!$item) {
@@ -12,21 +12,20 @@ function shadowpage_public_items_shadowpage_gallery($attrs = array(), $imageType
         return '';
     }
 
-    $defaultAttrs = array(
+    $attrs = array(
         'wrapper' => array('id' => 'item-images'),
-        'linkWrapper' => array('shadowpage-thumb'),
+        'linkWrapper' => array('class'=>'shadowpage-thumb'),
         'link' => array('rel'=>'shadowbox[gal1]'),
         'image' => array()
     );
-    $attrs = array_merge($defaultAttrs, $attrs);
+    
 
     $html = '';
     if ($attrs['wrapper'] !== null) {
         $html .= '<div ' . tag_attributes($attrs['wrapper']) . '>';
     }
     foreach ($files as $file) {
-        if (metadata($item, 'has thumbnail') && 
-            ($file['mime_type'] != 'text/plain' && 
+        if (($file['mime_type'] != 'text/plain' && 
             $file['mime_type'] !='application/epub+zip' && 
             $file['mime_type'] !='application/zip')){
             if ($attrs['linkWrapper'] !== null) {
@@ -37,8 +36,8 @@ function shadowpage_public_items_shadowpage_gallery($attrs = array(), $imageType
             if ($filesShow) {
                 $html .= link_to($file, 'show', $image, $attrs['link']);
             } else {
-                if ($file['mime_type'] !='application/pdf') {
-                    $linkAttrs = $attrs['link'] + array('href' => $file->getWebPath('original'));
+                if ($file['mime_type'] !='application/pdf' && $file['mime_type'] !='audio/mpeg' && $file['mime_type'] !='application/mpeg') {
+                    $linkAttrs = array('rel'=>'shadowbox[gal1]', 'href' => $file->getWebPath('fullsize'));
                     } else {
                         $linkAttrs = array('href' => $file->getWebPath('original'));
                     }
